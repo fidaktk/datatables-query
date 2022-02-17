@@ -53,7 +53,7 @@ var async = require('async'),
      * @param params DataTable params object
      * @returns {*}
      */
- buildFindParameters = function (params, Model) {
+     buildFindParameters = function (params, Model) {
 
         if (!params || !params.columns || !params.search || (!params.search.value && params.search.value !== '')) {
             return null;
@@ -74,7 +74,7 @@ var async = require('async'),
         if(!isNaN(searchText + 1)) {
 
             searchableFieldsDefault.forEach( (field) => {
-                if(Model.schema.paths[field].instance == 'Number') {
+                if(Model.schema.obj[field].type.prototype == Number.prototype) {
                     searchableFields.push(field);
                 }              
             });
@@ -183,7 +183,7 @@ var async = require('async'),
             var draw = Number(params.draw),
                 start = Number(params.start),
                 length = Number(params.length),
-                findParameters = buildFindParameters(params),
+                findParameters = buildFindParameters(params, Model),
                 sortParameters = buildSortParameters(params),
                 selectParameters = buildSelectParameters(params),
                 recordsTotal,
