@@ -53,7 +53,7 @@ var async = require('async'),
      * @param params DataTable params object
      * @returns {*}
      */
-    buildFindParameters = function (params) {
+ buildFindParameters = function (params, Model) {
 
         if (!params || !params.columns || !params.search || (!params.search.value && params.search.value !== '')) {
             return null;
@@ -61,30 +61,48 @@ var async = require('async'),
 
         var searchText = params.search.value,
             findParameters = {},
-            searchRegex;
+            searchRegex,
+            searchOrArray = [];
 
         if (searchText === '') {
             return findParameters;
         }
 
-        searchRegex = new RegExp(searchText, 'i');
+        var searchableFieldsDefault = getSearchableFields(params);  
+        var searchableFields = [];        
 
-        var searchableFields = getSearchableFields(params);
+        if(!isNaN(searchText + 1)) {
+
+            searchableFieldsDefault.forEach( (field) => {
+                if(Model.schema.paths[field].instance == 'Number') {
+                    searchableFields.push(field);
+                }              
+            });
+
+            searchRegex = searchText;
+        } else {
+            searchableFieldsDefault.forEach( (field) => {
+                if(Model.schema.obj[field].type.prototype == String.prototype) {
+                    searchableFields.push(field);
+                }              
+            });
+
+            searchRegex = new RegExp(searchText, 'i');
+        }
 
         if (searchableFields.length === 1) {
             findParameters[searchableFields[0]] = searchRegex;
             return findParameters;
         }
 
-        const conditions = [];
-
-        searchableFields.forEach(function(field) {
-            conditions.push(`(this.${field}.toString().match(${searchRegex}) !== null)`);
+        searchableFields.forEach(function (field) {
+            var orCondition = {};
+            orCondition[field] = searchRegex;
+            searchOrArray.push(orCondition);
         });
 
-        findParameters.$where = conditions.join(' || ');
-
-        return findParameters;
+        findParameters.$or = searchOrArray;
+        return findParameters;        
     },
 
     /**
