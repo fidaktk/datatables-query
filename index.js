@@ -61,8 +61,7 @@ var async = require('async'),
 
         var searchText = params.search.value,
             findParameters = {},
-            searchRegex,
-            searchOrArray = [];
+            searchRegex;
 
         if (searchText === '') {
             return findParameters;
@@ -77,13 +76,13 @@ var async = require('async'),
             return findParameters;
         }
 
-        searchableFields.forEach(function (field) {
-            var orCondition = {};
-            orCondition[field] = searchRegex;
-            searchOrArray.push(orCondition);
+        const conditions = [];
+
+        searchableFields.forEach(function(field) {
+            conditions.push(`(this.${field}.toString().match(${searchRegex}) !== null)`);
         });
 
-        findParameters.$or = searchOrArray;
+        findParameters.$where = conditions.join(' || ');
 
         return findParameters;
     },
