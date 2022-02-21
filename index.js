@@ -82,7 +82,8 @@ var async = require('async'),
             searchRegex = searchText;
         } else {
             searchableFieldsDefault.forEach( (field) => {
-                if(Model.schema.obj[field].type.prototype == String.prototype) {
+                // console.log(Model.schema.obj[field].type.prototype);
+                if(Model.schema.obj[field].type.prototype !== Number.prototype) {
                     searchableFields.push(field);
                 }              
             });
@@ -102,6 +103,7 @@ var async = require('async'),
         });
 
         findParameters.$or = searchOrArray;
+        // console.log(findParameters);
         return findParameters;        
     },
 
@@ -159,7 +161,7 @@ var async = require('async'),
             .columns
             .map(col => col.data)
             .reduce((selectParams, field) => {
-                selectParams[field] = 1;
+               if(field && field !== '') selectParams[field] = 1;
                 return selectParams;
             }, {});
     },
@@ -222,6 +224,12 @@ var async = require('async'),
                         });
                     },
                     function runQuery (cb) {
+                        // console.log(findParameters);
+                        // console.log(selectParameters)
+                        // console.log(length);
+                        // console.log(start);
+                        // console.log(sortParameters);
+                        // ConfigurationServicePlaceholders
                         Model
                             .find(findParameters)
                             .select(selectParameters)
